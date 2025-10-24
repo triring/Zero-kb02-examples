@@ -10,6 +10,7 @@ import (
 	"time"
 
 	qrcode "github.com/skip2/go-qrcode"
+	"tinygo.org/x/drivers"
 	"tinygo.org/x/drivers/ssd1306"
 	"tinygo.org/x/tinydraw"
 	"tinygo.org/x/tinyfont"
@@ -54,14 +55,16 @@ func main() {
 		Width:   128,
 		Height:  64,
 	})
-
 	time.Sleep(500 * time.Millisecond)
+	display.SetRotation(drivers.Rotation180)
+	display.ClearDisplay()
 	fmt.Println("Display the QR code.\n")
-
+	time.Sleep(50 * time.Millisecond)
 	black := color.RGBA{R: 0x00, G: 0x00, B: 0x00, A: 0xFF}
 	white := color.RGBA{R: 0xFF, G: 0xFF, B: 0xFF, A: 0xFF}
 	tinydraw.FilledRectangle(&display, 0, 0, 64, 128, white)
 	display.Display()
+	time.Sleep(100 * time.Millisecond)
 
 	// str := "イ" // 3 byte, size: 29 x 29 OK version 1(21x21)
 	// str := "Hello tinygo!" // 13 byte, size: 29 x 29 OK version 1(21x21)
@@ -95,7 +98,7 @@ func main() {
 		fmt.Println("Error creating QR code:", err)
 		return
 	}
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 
 	//	var bitmap [][]bool
 	// 2D bool配列を取得
@@ -119,6 +122,7 @@ func main() {
 			}
 			display.Display()
 			fmt.Println()
+			time.Sleep(25 * time.Millisecond)
 		}
 		fmt.Printf("The data size is too large.\n")
 	} else {

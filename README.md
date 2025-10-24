@@ -1,7 +1,7 @@
 # Zero-kb02-examples
 <!-- pandoc -f markdown -t html5 -o README.html -c github.css README.md -->
 
-マイクロパッド[zero-kb02](https://github.com/sago35/tinygo_keeb_workshop_2024/blob/main/buildguide.md) 用に作成したサンプルプログラムです。  
+RP2040チップを搭載したマイクロパッド[zero-kb02](https://github.com/sago35/tinygo_keeb_workshop_2024/blob/main/buildguide.md) 用に作成したサンプルプログラムです。  
 アイデアの検証やテスト用に作成したものなので、実用性はありません。  
 
 ## Hardware
