@@ -4,7 +4,7 @@
 マイクロパッド[zero-kb02](https://github.com/sago35/tinygo_keeb_workshop_2024/blob/main/buildguide.md) のOLEDディスプレイに、1セルを2x2ドットでQRコードを表示します。  
 字種やその組み合わせによって異なりますが、QRコードには数十文字程度のデータを格納できます。
 
-![zero-kb02](./photo/DSCN0311_800x600.jpg)  
+![zero-kb02](./photo/IMG_8197_800x600.jpg)  
 
 ### コンパイル方法  
 
