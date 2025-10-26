@@ -43,6 +43,13 @@ TinyGo Keeb Tour 2025で、頒布されたマイクロパッド[zero-kb02](https
 
 マイクロパッド[zero-kb02](https://github.com/sago35/tinygo_keeb_workshop_2024/blob/main/buildguide.md) のOLEDディスプレイに、QRコードを表示します。  
 
-解説 [dispQRcode](./dispQRcode/README.md)  
-ソースコード 	[main.go](./dispQRcode/main.go)  
+* 解説 [dispQRcode](./dispQRcode/README.md)  
+* ソースコード 	[main.go](./dispQRcode/main.go)  
 
+### QR おみくじ
+
+マイクロパッド[zero-kb02](https://github.com/sago35/tinygo_keeb_workshop_2024/blob/main/buildguide.md) のOLEDディスプレイに、御神託をQRコードで表示する**おみくじ**です。  
+スマホ等のQRコードリーダーで読み取って下さい。  
+
+* 解説 [QR-omikuji](./QR-omikuji/README.md)  
+* ソースコード 	[main.go](./QR-omikuji/main.go)  

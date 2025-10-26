@@ -11,6 +11,7 @@
 必要に応じて、以下のパッケージの導入して下さい。
 
 ```bash
+> go get -u github.com/skip2/go-qrcode/...
 > go get tinygo.org/x/drivers
 > go get tinygo.org/x/tinydraw
 > go get tinygo.org/x/tinyfont
