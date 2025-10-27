@@ -131,9 +131,10 @@ func dispQR(display ssd1306.Device, offset_x int, offset_y int, str string) int 
 				// fmt.Print("0 ")
 			}
 		}
-		display.Display()
 		// fmt.Println()
 	}
+	display.Display()
+
 	// versionをチェックする。
 	version := 0
 	switch height {
@@ -212,7 +213,7 @@ func main() {
 	tinydraw.FilledRectangle(display, 0, 0, 128, 64, white)
 
 	rand.Seed(time.Now().UnixNano()) // 現在の時刻をシードとして設定
-	for i := 0; i < 64; i++ {
+	for i := 0; i < 32; i++ {
 		randomInt := rand.Intn(32) // 0から31までの整数を生成
 		ver := dispQR(*display, 32, 0, oracle[randomInt][1])
 		fmt.Printf("%s\t%s\t%s\n",
@@ -222,10 +223,12 @@ func main() {
 		}
 		time.Sleep(500 * time.Millisecond)
 	}
-	tinydraw.FilledRectangle(display, 0, 0, 128, 64, white)
-	// dispMsg09(*display, 8, 20, "Try again!\npress\nreset btn")
-	dispMsg09(*display, 8, 20, "Try again!\nPress\nreset btn")
 	for {
-		time.Sleep(60 * time.Second)
+		tinydraw.FilledRectangle(display, 0, 0, 128, 64, white)
+		dispQR(*display, 0, 0, "Press reset button and restart.")
+		time.Sleep(1000 * time.Millisecond)
+		tinydraw.FilledRectangle(display, 0, 0, 128, 64, white)
+		dispQR(*display, 64, 0, "初期化釦を押し再起動")
+		time.Sleep(1000 * time.Millisecond)
 	}
 }
