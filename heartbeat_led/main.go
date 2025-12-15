@@ -5,15 +5,18 @@
 /*
 このプログラムについて
 Raspberry pi のアクセスランプ（緑）は、ACT LEDは設定により外部LEDとしての機能を割り当てることができます。
-デフォルトでは、ACT LEDはSDへのアクセスで点滅するように設定されているが、これをheartbeatモードに設定すると一定間隔で「短い点滅が2回、その後に少し長い休止」の点滅し続けるようになります。
-この点滅周期は、システムの負荷（ロードアベレージ）と連動しており、以下のように変動する。
+デフォルトでは、ACT LEDはSDへのアクセスで点滅するように設定されていますが、これをheartbeatモードに設定すると一定間隔で「短い点滅が2回、その後に少し長い休止」の点滅し続けるようになります。
+
+> sudo sh -c 'echo heartbeat  >/sys/class/leds/led0/trigger'
+
+この点滅周期は、システムの負荷（ロードアベレージ）と連動しており、以下のように変動します。
 
 * 低負荷: 点滅の間隔はゆっくりになる。
 * 高負荷: 点滅の間隔が速くなり、最大で毎分180回程度の速い点滅になる。
 
-今回は、これを模倣し、フルカラーLEDで、心拍を表現してみた。
-英語の医学的・科学的な文脈では、心音をLub-dubと表現する。
-これは、心臓の弁が閉じる音を正確に表したもので、「lub」が心室の収縮（第一心音）、「dub」が心室の弛緩（第二心音）に対応している。
+今回は、これを模倣し、フルカラーLEDで、心拍を表現してみました。
+英語の医学的・科学的な文脈では、心音をLub-dubと表現しています。
+これは、心臓の弁が閉じる音を正確に表したもので、「lub」が心室の収縮（第一心音）、「dub」が心室の弛緩（第二心音）に対応しています。
 今回は、以下の配色でLub-dubと表現する。
 * 赤色->lub:心室の収縮(第一心音)
 * 青色->dub:心室の弛緩(第二心音)
@@ -48,18 +51,24 @@ func (ws *WS2812B) PutColor(c color.Color) {
 }
 
 // 色の定義
+// カラーユニバーサルデザイン(CUD) カラーセットより抜粋
 var (
-	red   = color.RGBA{R: 0xFF, G: 0x00, B: 0x0, A: 0xFF}  //  Red : 赤
-	blue  = color.RGBA{R: 0x0, G: 0x5A, B: 0xFF, A: 0xFF}  //  Blue : 青
+	// Accent Colors アクセントカラー
+	// red      = color.RGBA{R: 0xFF, G: 0x4B, B: 0x0, A: 0xFF}  //  Red : 赤
+	red      = color.RGBA{R: 0xFF, G: 0x0, B: 0x0, A: 0xFF}   //  Red : 赤
+	blue     = color.RGBA{R: 0x0, G: 0x5A, B: 0xFF, A: 0xFF}  //  Blue : 青
+	sky_blue = color.RGBA{R: 0x4D, G: 0xC4, B: 0xFF, A: 0xFF} //  Sky blue : 空色
+	orange   = color.RGBA{R: 0xF6, G: 0xAA, B: 0x0, A: 0xFF}  //  Orange : オレンジ
+	// Achromatic Colors 無彩色
 	white = color.RGBA{R: 0xFF, G: 0xFF, B: 0xFF, A: 0xFF} //  White  白
 	black = color.RGBA{R: 0x0, G: 0x0, B: 0x0, A: 0xFF}    //  Black  黒
 )
 
 // LEDの発光パターン
 var lighting_pattern = [8]color.Color{
-	red,  // 赤色->lub:心室の収縮(第一心音)
-	blue, // 青色->dub:心室の弛緩(第二心音)
+	red, // 赤色->lub:心室の収縮(第一心音)
 	black,
+	sky_blue, // 空色->dub:心室の弛緩(第二心音)
 	black,
 	black,
 	black,

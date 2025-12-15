@@ -1,7 +1,7 @@
 # Zero-kb02-examples
 <!-- pandoc -f markdown -t html5 -o README.html -c github.css README.md -->
 
-RP2040チップを搭載したマイクロパッド[zero-kb02](https://github.com/sago35/tinygo_keeb_workshop_2024/blob/main/buildguide.md) 用に作成したサンプルプログラムです。  
+RP2040チップを搭載したマイクロパッド[zero-kb02](https://github.com/sago35/tinygo_keeb_workshop_2024/blob/main/buildguide.md) 用に作成したTinygoのサンプルプログラムです。  
 アイデアの検証やテスト用に作成したものなので、実用性はありません。  
 
 ## Hardware
@@ -13,9 +13,9 @@ TinyGo Keeb Tour 2025で、頒布されたマイクロパッド[zero-kb02](https
 このマイクロパッドは、Raspberry Pi Pico と同じRP2040チップを搭載したマイコンボード[RP2040-Zero](https://www.waveshare.com/wiki/RP2040-Zero)で作られています。  
 ここで公開しているソースコードは、RP2040チップを使用しているマイコンボードであれば、多少改変すれば、利用できると思います。  
 
-## 開発環境のインストール  
+## Tinygo開発環境のインストール  
 
-ここで、公開しているソースコードを利用するために必要な開発環境を導入して下さい。  
+ここで、公開しているソースコードを利用するために必要なTinygoの開発環境を導入して下さい。  
 ここでは、Windows11上での開発環境構築について解説します。他のOSについては、本家[tinygo](https://tinygo.org/)サイトの解説をお読み下さい。  
 
 1. パッケージ管理ツールscoopのサイトを開き、導入スクリプトを入手して下さい。  
@@ -43,13 +43,22 @@ TinyGo Keeb Tour 2025で、頒布されたマイクロパッド[zero-kb02](https
 
 マイクロパッド[zero-kb02](https://github.com/sago35/tinygo_keeb_workshop_2024/blob/main/buildguide.md) のOLEDディスプレイに、QRコードを表示します。  
 
-* 解説 [dispQRcode](./dispQRcode/README.md)  
-* ソースコード 	[main.go](./dispQRcode/main.go)  
+* 解説 [./dispQRcode/README.md](./dispQRcode/README.md)  
+* ソースコード [./dispQRcode/main.go](./dispQRcode/main.go)  
 
 ### QR おみくじ
 
 マイクロパッド[zero-kb02](https://github.com/sago35/tinygo_keeb_workshop_2024/blob/main/buildguide.md) のOLEDディスプレイに、御神託をQRコードで表示する**おみくじ**です。  
 スマホ等のQRコードリーダーで読み取って下さい。  
 
-* 解説 [QR-omikuji](./QR-omikuji/README.md)  
-* ソースコード 	[main.go](./QR-omikuji/main.go)  
+* 解説 [./QR-omikuji/README.md](./QR-omikuji/README.md)  
+* ソースコード [./QR-omikuji/main.go](./QR-omikuji/main.go)  
+
+### タイマー
+
+マイクロパッド[zero-kb02](https://github.com/sago35/tinygo_keeb_workshop_2024/blob/main/buildguide.md) を使用したシンプルなカウントダウンタイマーです。  
+ロータリーエンコーダだけで操作できます。  
+
+* 解説 [./timer/README.md](./timer/README.md)  
+* ソースコード [./timer/main.go](./timer/main.go)  
+

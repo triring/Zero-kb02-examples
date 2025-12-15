@@ -28,7 +28,7 @@ NHK Ｅテレの朝の番組**０６５５**の「たなくじ」(月曜日限�
 また、実行用バイナリを転送できない場合は、以下のコマンドで、実行用バイナリを作成し、手作業で、実行用バイナリをzero-kb02に転送して下さい。  
 
 ```bash
-> tinygo build -o dispQRcode.uf2 --target waveshare-rp2040-zero --size short .
+> tinygo build -o QR-omikuji.uf2 --target waveshare-rp2040-zero --size short .
 ```
 
 ### 使い方
@@ -38,7 +38,7 @@ NHK Ｅテレの朝の番組**０６５５**の「たなくじ」(月曜日限�
 
 2. スマホ等のQRコードリーダーで読み取って下さい。  
 
-3. 約30秒間、表示を繰り返し、自動停止します。  
+3. 約15秒間、表示を繰り返し、自動停止します。  
 4. 繰り返し実行したい場合は、マイコンボードrp2040-zeroの物理リセットボタンを押して下さい。  
 ![リセット](./photo/IMG_8218_800x600_edit.jpg)
 

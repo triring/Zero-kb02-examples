@@ -1,0 +1,283 @@
+// tinygo build -o timer.uf2 -target=waveshare-rp2040-zero -size short .
+// tinygo flash -target=waveshare-rp2040-zero -monitor -size short .
+
+package main
+
+import (
+	"fmt"
+	"image/color"
+	"machine"
+	"time"
+
+	"tinygo.org/x/drivers"
+	"tinygo.org/x/drivers/encoders"
+	"tinygo.org/x/drivers/ssd1306"
+	"tinygo.org/x/drivers/tone"
+	"tinygo.org/x/tinyfont"
+	"tinygo.org/x/tinyfont/freemono"
+)
+
+// zero-kb02用出力ポート等の定義
+// Please connect a piezo buzzer to the 3V3 and EX01 pins on the back terminal.
+// | EX01 | EX03 | 3V3 | SDA0 | 3V3 | 3V3 |     |        GROVE            |
+// | EX02 | EX04 | GND | SCL0 | GND | GND | - - | GND | 3V3 | SDA0 | SCL0 |
+// 今回は、圧電ブザーをGPIO15とGNDに接続した。
+
+var pinToPWM = map[machine.Pin]tone.PWM{
+	machine.GPIO14: machine.PWM7, // for EX01
+	machine.GPIO15: machine.PWM7, // for EX02
+	machine.GPIO26: machine.PWM5, // for EX03
+	machine.GPIO27: machine.PWM5, // for EX04
+}
+
+/*
+   beep音を出力する圧電ブザーを接続しているGPIOの設定について
+   RP2040では8つのスライス、最大16チャンネルのPWMが扱える。
+   今回は、GPIO15を圧電ブザーの出力に設定し、このGPIOに対応するPWMのチャンネルとしてPWM7を設定した。
+   他のGPIOを使用する場合は、以下の表から、使用するGPIOに対応するPWM チャンネルを設定すること。
+
+   GPIO		0	1	2	3	4	5	6	7	8	9	10	11	12	13	14	15
+   PWM	Ch	0A	0B	1A	1B	2A	2B	3A	3B	4A	4B	5A	5B	6A	6B	7A	7B
+
+   GPIO		16	17	18	19	20	21	22	23	24	25	26	27	28	29
+   PWM	Ch	0A	0B	1A	1B	2A	2B	3A	3B	4A	4B	5A	5B	6A	6B
+*/
+
+const (
+	Waiting   int = 0 // 待機
+	Countdown int = 1 // カウントダウン
+	Reset     int = 2 // リセット
+)
+
+var (
+	RemainingTime         time.Duration = 180  // 設定残り時間 3分間
+	PreviousRemainingTime time.Duration = 180  // 設定残り時間 3分間
+	MaxTime               time.Duration = 5940 // 最大時間
+	MinTime               time.Duration = 0    // 最小時間
+)
+
+const (
+	shortPressThresholdMs time.Duration = 100 // 短押しと判別する最大時間（ミリ秒）
+	longPressThresholdMs  time.Duration = 500 // 長押しと判別する最小時間（ミリ秒）
+)
+
+// カラーユニバーサルデザイン(CUD) カラーセット
+var (
+	// Accent Colors アクセントカラー
+	red      = color.RGBA{R: 0xFF, G: 0x4B, B: 0x0, A: 0xFF}  //  Red : 赤
+	yellow   = color.RGBA{R: 0xFF, G: 0xF1, B: 0x0, A: 0xFF}  //  Yellow : 黄色
+	green    = color.RGBA{R: 0x3, G: 0xAF, B: 0x7A, A: 0xFF}  //  Green : 緑
+	blue     = color.RGBA{R: 0x0, G: 0x5A, B: 0xFF, A: 0xFF}  //  Blue : 青
+	sky_blue = color.RGBA{R: 0x4D, G: 0xC4, B: 0xFF, A: 0xFF} //  Sky blue : 空色
+	pink     = color.RGBA{R: 0xFF, G: 0x80, B: 0x82, A: 0xFF} //  Pink : ピンク
+	orange   = color.RGBA{R: 0xF6, G: 0xAA, B: 0x0, A: 0xFF}  //  Orange : オレンジ
+	purple   = color.RGBA{R: 0x99, G: 0x0, B: 0x99, A: 0xFF}  //  Purple : 紫
+	brown    = color.RGBA{R: 0x80, G: 0x40, B: 0x0, A: 0xFF}  //  Brown : 茶色
+
+	// Base Colors  ベースカラー
+	light_pink         = color.RGBA{R: 0xFF, G: 0xCA, B: 0xBF, A: 0xFF} //  Light pink : 明るいピンク
+	cream              = color.RGBA{R: 0xFF, G: 0xFF, B: 0x80, A: 0xFF} //  Cream : クリーム
+	light_yellow_green = color.RGBA{R: 0xD8, G: 0xF2, B: 0x55, A: 0xFF} //  Light yellow-green : 明るい黄緑
+	light_sky_blue     = color.RGBA{R: 0xBF, G: 0xE4, B: 0xFF, A: 0xFF} //  Light sky blue : 明るい空色
+	beige              = color.RGBA{R: 0xFF, G: 0xCA, B: 0x80, A: 0xFF} //  Beige : ベージュ
+	light_green        = color.RGBA{R: 0x77, G: 0xD9, B: 0xA8, A: 0xFF} //  Light green : 明るい緑
+	light_purple       = color.RGBA{R: 0xC9, G: 0xAC, B: 0xE6, A: 0xFF} //  Light purple : 明るい紫
+
+	// Achromatic Colors 無彩色
+	white      = color.RGBA{R: 0xFF, G: 0xFF, B: 0xFF, A: 0xFF} //  White  白
+	light_gray = color.RGBA{R: 0xC8, G: 0xC8, B: 0xCB, A: 0xFF} //  Light gray  明るいグレー
+	gray       = color.RGBA{R: 0x84, G: 0x91, B: 0x9E, A: 0xFF} //  Gray  グレー
+	black      = color.RGBA{R: 0x0, G: 0x0, B: 0x0, A: 0xFF}    //  Black  黒
+)
+
+// Unix時間への相互変換（ミリ秒）
+
+// システム時間からUnix時間への変換
+func timeToUnixMilli(t time.Time) int64 {
+	return t.UnixNano() / 1000000
+}
+
+// Unix時間からシステム時間への変換
+func unixMilliToTime(millis int64) time.Time {
+	return time.Unix(0, millis*1000000)
+}
+
+func DispTime_oled(display ssd1306.Device, t time.Duration) {
+	white := color.RGBA{R: 0xFF, G: 0xFF, B: 0xFF, A: 0xFF}
+	display.ClearBuffer()
+	DispTime := fmt.Sprintf("%02d:%02d", RemainingTime/60, RemainingTime%60)
+	tinyfont.WriteLine(&display, &freemono.Bold9pt7b, 5, 24, "Timer", white)
+	tinyfont.WriteLine(&display, &freemono.Bold18pt7b, 5, 60, DispTime, white)
+	display.Display()
+}
+
+// tone.A6  6 octaves ド	2093.0 Hz
+var mute tone.Note = 0 // 無音
+
+func main() {
+	// ブザーが接続されたPinの設定と初期化
+	bzrPin := machine.GPIO15
+	pwm := pinToPWM[bzrPin]
+	speaker, err := tone.New(pwm, bzrPin)
+	if err != nil {
+		println("failed to configure PWM")
+		return
+	}
+
+	// エンコーダの設定
+	enc := encoders.NewQuadratureViaInterrupt(
+		machine.GPIO3, // ROT_A1
+		machine.GPIO4, // ROT_B1
+	)
+
+	enc.Configure(encoders.QuadratureConfig{
+		Precision: 4,
+	})
+
+	rot_btn := machine.GPIO2 // ROT_BTN1
+	rot_btn.Configure(machine.PinConfig{Mode: machine.PinInputPullup})
+
+	// I2Cの初期設定 (Zero-kb02)
+	machine.I2C0.Configure(machine.I2CConfig{
+		Frequency: 2.8 * machine.MHz,
+		SDA:       machine.GPIO12,
+		SCL:       machine.GPIO13,
+	})
+
+	/* I2Cの初期設定 (conf2025badge)
+	machine.I2C1.Configure(machine.I2CConfig{
+		Frequency: machine.TWI_FREQ_400KHZ,
+		SDA:       machine.GPIO6,
+		SCL:       machine.GPIO7,
+	})
+	*/
+
+	// OLEDディスプレイの初期設定 (Zero-kb02)
+	display := ssd1306.NewI2C(machine.I2C0)
+	display.Configure(ssd1306.Config{
+		Address: 0x3C,
+		Width:   128,
+		Height:  64,
+	})
+	display.SetRotation(drivers.Rotation180)
+
+	/* OLEDディスプレイの初期設定 (conf2025badge)
+	display := ssd1306.NewI2C(machine.I2C1)
+	display.Configure(ssd1306.Config{
+		Address: 0x3C,
+		Width:   128,
+		Height:  64,
+	})
+	*/
+	display.ClearDisplay()
+
+	var newValue int = 0
+	var oldValue int = 0
+	var state int = Waiting
+
+	var timerStartTime time.Time
+	var pressStartTime time.Time
+	isButtonPressed := false
+	buttonState := true
+
+	DispTime_oled(display, RemainingTime)
+	for {
+		// ボタンの状態を読み取る。
+		// プルアップを使用しているので、ボタンが押されるとLOW（false）になる。
+		buttonState = rot_btn.Get()
+		if !buttonState && !isButtonPressed { // ボタンが押された瞬間
+			pressStartTime = time.Now()
+			isButtonPressed = true
+			println("ボタンが押されました")
+		} else if buttonState && isButtonPressed { // ボタンが離された瞬間
+			pressDuration := time.Since(pressStartTime)
+			isButtonPressed = false
+			if pressDuration >= longPressThresholdMs*time.Millisecond {
+				println(">>> 長押しを検出しました！ <<<")
+				// reset
+				RemainingTime = PreviousRemainingTime
+				DispTime_oled(display, RemainingTime)
+				clickSound(speaker) // 無音
+			} else if pressDuration >= shortPressThresholdMs*time.Millisecond {
+				println(">>> 短押しを検出しました！ <<<")
+				if state == Waiting {
+					if RemainingTime > 0 {
+						state = Countdown
+						PreviousRemainingTime = RemainingTime
+						timerStartTime = time.Now()
+						clickSound(speaker) // クリック音
+					} else {
+						println("リセットするか、ボタンを長押しして、計測する時間を再設定して下さい。")
+						errorSound(speaker) // エラー音
+					}
+				} else {
+					state = Waiting
+					clickSound(speaker) // 無音
+				}
+			} else {
+				println("チャタリングまたは非常に短い押し込みとして無視します。")
+			}
+			println("ボタンが離されました。押下時間:", pressDuration)
+		}
+		switch state {
+		case Waiting:
+			if newValue = enc.Position(); newValue != oldValue {
+				println("value: ", newValue)
+				if (newValue - oldValue) > 0 {
+					RemainingTime += time.Duration(newValue - oldValue)
+					if RemainingTime > MaxTime {
+						RemainingTime = MaxTime
+					}
+				} else {
+					RemainingTime -= time.Duration(oldValue - newValue)
+					if MinTime > RemainingTime {
+						RemainingTime = MinTime
+					}
+				}
+				oldValue = newValue
+				DispTime_oled(display, RemainingTime)
+			}
+			break
+
+		case Countdown:
+			println(RemainingTime, time.Since(timerStartTime)/1000000000)
+			RemainingTime = PreviousRemainingTime - time.Since(timerStartTime)/1000000000
+			if RemainingTime >= 0 {
+				DispTime_oled(display, RemainingTime)
+				/*
+					display.ClearBuffer()
+					DispTime := fmt.Sprintf("%02d:%02d", RemainingTime/60, RemainingTime%60)
+					tinyfont.WriteLine(&display, &freemono.Bold9pt7b, 5, 24, "Timer", white)
+					tinyfont.WriteLine(&display, &freemono.Bold18pt7b, 5, 60, DispTime, white)
+					display.Display()
+				*/
+			} else {
+				state = Waiting
+				// 終了音
+				for loop := 0; loop < 25; loop++ {
+					speaker.SetNote(tone.A7) // 7 octaves ド	2093.0 Hz
+					time.Sleep(time.Millisecond * 100)
+					speaker.SetNote(mute) // 無音
+					time.Sleep(time.Millisecond * 200)
+				}
+			}
+			break
+		}
+		// CPU使用率を抑えるため、短い間隔でポーリングする。
+		time.Sleep(5 * time.Millisecond)
+	}
+}
+
+// クリック音
+func clickSound(speaker tone.Speaker) {
+	speaker.SetNote(tone.A7) // 7 octaves ド	2093.0 Hz
+	time.Sleep(time.Millisecond * 100)
+	speaker.SetNote(mute)
+}
+
+// エラー音
+func errorSound(speaker tone.Speaker) {
+	speaker.SetNote(tone.A3) // 3 octaves ラ	 220.0 Hz
+	time.Sleep(time.Millisecond * 1000)
+	speaker.SetNote(mute)
+}
