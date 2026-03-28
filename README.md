@@ -62,3 +62,12 @@ TinyGo Keeb Tour 2025で、頒布されたマイクロパッド[zero-kb02](https
 * 解説 [./timer/README.md](./timer/README.md)  
 * ソースコード [./timer/main.go](./timer/main.go)  
 
+### BABEL
+
+某ロボットアニメで、暴走したコンピュータのコンソールに表示されるメッセージを再現してみました。  
+ソースコードのみ  
+
+* 解説 [./BABEL/README.md](./BABEL/README.md)  
+* ソースコード  
+	* Fullset go version [./BABEL/TinyGo/main.go](./BABEL/TinyGo/main.go)  
+	* tinygo version [./BABEL/FullsetGo/main.go](./BABEL/FullsetGo/main.go)  
