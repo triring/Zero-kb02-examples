@@ -50,10 +50,12 @@ const (
 )
 
 var (
-	RemainingTime         time.Duration = 300  // 設定残り時間 5分間
-	PreviousRemainingTime time.Duration = 300  // 設定残り時間 5分間
-	MaxTime               time.Duration = 5940 // 最大時間
-	MinTime               time.Duration = 0    // 最小時間
+//	RemainingTime         time.Duration = 180  // 設定残り時間設定 3分
+//	PreviousRemainingTime time.Duration = 180  // 設定残り時間設定 3分
+	RemainingTime         time.Duration = 300  // 設定残り時間設定 5分
+	PreviousRemainingTime time.Duration = 300  // 設定残り時間設定 5分
+	MaxTime               time.Duration = 5999 // 最大時間 99分59秒
+	MinTime               time.Duration = 0    // 最小時間 99分59秒
 )
 
 const (
