@@ -24,10 +24,36 @@ import (
 // 今回は、圧電ブザーをGPIO15とGNDに接続した。
 
 var pinToPWM = map[machine.Pin]tone.PWM{
-	machine.GPIO14: machine.PWM7, // for EX01
-	machine.GPIO15: machine.PWM7, // for EX02
-	machine.GPIO26: machine.PWM5, // for EX03
-	machine.GPIO27: machine.PWM5, // for EX04
+	machine.GPIO0:  machine.PWM0,
+	machine.GPIO1:  machine.PWM0,	// conf2025badge 圧電素子スピーカー
+	machine.GPIO2:  machine.PWM1,
+	machine.GPIO3:  machine.PWM1,
+	machine.GPIO4:  machine.PWM2,
+	machine.GPIO5:  machine.PWM2,
+	machine.GPIO6:  machine.PWM3,
+	machine.GPIO7:  machine.PWM3,
+	machine.GPIO8:  machine.PWM4,
+	machine.GPIO9:  machine.PWM4,
+	machine.GPIO10: machine.PWM5,
+	machine.GPIO11: machine.PWM5,
+	machine.GPIO12: machine.PWM6,
+	machine.GPIO13: machine.PWM6,
+	machine.GPIO14: machine.PWM7,	// zero-kb02 EX01
+	machine.GPIO15: machine.PWM7,	// zero-kb02 EX02
+	machine.GPIO16: machine.PWM0,
+	machine.GPIO17: machine.PWM0,
+	machine.GPIO18: machine.PWM1,
+	machine.GPIO19: machine.PWM1,
+	machine.GPIO20: machine.PWM2,
+	machine.GPIO21: machine.PWM2,
+	machine.GPIO22: machine.PWM3,
+	machine.GPIO23: machine.PWM3,
+	machine.GPIO24: machine.PWM4,
+	machine.GPIO25: machine.PWM4,
+	machine.GPIO26: machine.PWM5,	// zero-kb02 EX03
+	machine.GPIO27: machine.PWM5,	// zero-kb02 EX04
+	machine.GPIO28: machine.PWM6,
+	machine.GPIO29: machine.PWM6,
 }
 
 /*
@@ -227,12 +253,14 @@ func main() {
 			if newValue = enc.Position(); newValue != oldValue {
 				println("value: ", newValue)
 				if (newValue - oldValue) > 0 {
-					RemainingTime += time.Duration(newValue - oldValue)
+					RemainingTime += time.Duration((newValue - oldValue) * 10)
+					fmt.Println(newValue - oldValue)
 					if RemainingTime > MaxTime {
 						RemainingTime = MaxTime
 					}
 				} else {
-					RemainingTime -= time.Duration(oldValue - newValue)
+					RemainingTime -= time.Duration((oldValue - newValue) * 10)
+					fmt.Println(newValue - oldValue)
 					if MinTime > RemainingTime {
 						RemainingTime = MinTime
 					}
@@ -263,7 +291,7 @@ func main() {
 			break
 		}
 		// CPU使用率を抑えるため、短い間隔でポーリングする。
-		time.Sleep(5 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 	}
 }
 
